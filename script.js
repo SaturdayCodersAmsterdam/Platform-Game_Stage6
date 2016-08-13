@@ -43,7 +43,7 @@ function preload() {
     game.load.atlasJSONHash('mexican', 'assets/mexican.png', 'assets/mexican.json');
 
     game.load.image('pixel', 'assets/trans-pixel.png');
-
+    game.load.script('HudManager', 'plugins/HUDManager.js');
 }
 
 
@@ -55,6 +55,7 @@ function create() {
     emitter = game.add.emitter(game.world.centerX, game.world.centerY, 400);
 
     emitter.makeParticles( [ 'fire1', 'fire2', 'fire3', 'smoke' ] );
+
 
     emitter.gravity = 800;
     emitter.setAlpha(1, 0, 3000);
@@ -84,6 +85,19 @@ function create() {
 
     mexican.animations.add('stop');
     mexican.animations.play('stop', 5, true);
+
+
+    mexican.id                  = 1;
+    mexican.maxHealth           = 100;
+    mexican.health              = 100;
+    mexican.anchor.setTo(0.5, 0.5);
+    game.physics.enable(mexican, Phaser.Physics.ARCADE);
+    mexican.hud                 = Phaser.Plugin.HUDManager.create(mexican.game, mexican, 'enemyhud');
+    mexican.healthHUD           =mexican.hud.addBar(0, -20, 32, 2, mexican.maxHealth, 'health', mexican, Phaser.Plugin.HUDManager.HEALTHBAR, false);
+    mexican.healthHUD.bar.anchor.setTo(0.5, 0.5);
+    mexican.addChild(mexican.healthHUD.bar);
+    mexican.body.immovable      = true;
+
     game.physics.arcade.enable(mexican);
     game.physics.arcade.enable(box);
     game.physics.arcade.enable(lift);
@@ -120,6 +134,7 @@ function create() {
     //  Speed-up the rate of fire, allowing them to shoot 1 bullet every 60ms
     weapon.fireRate = 100;
 
+    game.physics.arcade.enable(weapon);
     //  Tell the Weapon to track the 'mySprite' Sprite
     //  With no offsets from the position
     //  But the 'true' argument tells the weapon to track sprite rotation
@@ -130,8 +145,14 @@ function create() {
 function update () {
 
     game.physics.arcade.collide(mexican, box, yahoo);
+    game.physics.arcade.collide(mexican, weapon.bullets, bomb, null, this);
+
+
+
     game.physics.arcade.collide(mySprite, box, yahoo);
     game.physics.arcade.collide(mySprite, lift, yahoo);
+
+
 
     if (x > game.width - mySprite.width || x < 0) {
         dirX = -dirX;
@@ -194,6 +215,20 @@ function update () {
 
 
 }
+
+
+function bomb(whatsthis, bullet){
+    console.log(bullet);
+
+    mexican.health = mexican.health -10;
+
+    if  (mexican.health<=60){
+
+        mexican.kill();
+    }
+    bullet.kill();
+}
+
 
 function particleBurst() {
     var px = mySprite.body.velocity.x;
