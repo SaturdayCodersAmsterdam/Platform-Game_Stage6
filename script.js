@@ -29,21 +29,29 @@ function preload() {
     game.load.image('fire2', 'assets/fire2.png');
     game.load.image('fire3', 'assets/fire3.png');
     game.load.image('smoke', 'assets/smoke-puff.png');
+
+
     game.load.image('pixel', 'assets/trans-pixel.png');
+
+
+
     game.load.image('bullet', 'assets/bullet.png');
     game.load.image('box', 'assets/box.png');
     game.load.image('lift', 'assets/lift.png');
     game.load.image('background', 'assets/header.jpg');
     game.load.atlasJSONHash('student', 'assets/student.png','assets/student.json');
     game.load.atlasJSONHash('mexican', 'assets/mexican.png', 'assets/mexican.json');
+
+    game.load.image('pixel', 'assets/trans-pixel.png');
+
 }
 
 
 function create() {
 
-  game.physics.startSystem(Phaser.Physics.ARCADE);
-  game.stage.backgroundColor = '#333';
-  game.add.tileSprite(-400,-400, 2000, 1600, 'background');
+    game.physics.startSystem(Phaser.Physics.ARCADE);
+    game.stage.backgroundColor = '#333';
+    game.add.tileSprite(-400,-400, 2000, 1600, 'background');
     emitter = game.add.emitter(game.world.centerX, game.world.centerY, 400);
 
     emitter.makeParticles( [ 'fire1', 'fire2', 'fire3', 'smoke' ] );
@@ -52,6 +60,18 @@ function create() {
     emitter.setAlpha(1, 0, 3000);
 
     mySprite = game.add.sprite( 600,480, 'student');
+    mySpritePixel = game.add.sprite( 600,480, 'pixel');
+
+
+    game.physics.enable(mySpritePixel, Phaser.Physics.ARCADE);
+
+    mySpritePixel.body.enable          = true;
+    mySpritePixel.body.allowRotation   = true;
+
+    //mySpritePixel.anchor.setTo(0.5, 0.5);
+    //mySpritePixel.body.offset.setTo(0,0);
+
+
     mySprite.animations.add('left', ['left1', 'left2','left3', 'left4','left5', 'left6','left7', 'left8','left9']);
     mySprite.animations.add('right', ['right1', 'right2','right3', 'right4','right5', 'right6','right7', 'right8', 'right9']);
     mySprite.animations.add('up'), ['up1', 'up2','up3', 'up4','up5', 'up6','up7', 'up8','up9'];
@@ -103,7 +123,7 @@ function create() {
     //  Tell the Weapon to track the 'mySprite' Sprite
     //  With no offsets from the position
     //  But the 'true' argument tells the weapon to track sprite rotation
-    weapon.trackSprite(mySprite, 0, 0, true);
+    weapon.trackSprite(mySpritePixel, 0, 0, true);
 
 }
 
@@ -113,56 +133,66 @@ function update () {
     game.physics.arcade.collide(mySprite, box, yahoo);
     game.physics.arcade.collide(mySprite, lift, yahoo);
 
-    if ( x > game.width - mySprite.width || x < 0 ) {
-      dirX = -dirX;
+    if (x > game.width - mySprite.width || x < 0) {
+        dirX = -dirX;
     }
-    if ( y > game.height - mySprite.height || y < 0 ) {
-      dirY = -dirY;
+    if (y > game.height - mySprite.height || y < 0) {
+        dirY = -dirY;
     }
 
 
     if (cursors.down.isDown) {
-      mySprite.y = mySprite.y + 1;
+      //  mySprite.y = mySprite.y + 1;
+     //   mySpritePixel.y =   mySprite.y;
+     //   console.log(mySprite.y);
     }
-    if (cursors.up.isDown)
-    {
+    if (cursors.up.isDown) {
         mySprite.y = mySprite.y - 10;
-         particleBurst();
-      //  emitter.start(false, 3000, 5);
+        particleBurst();
+        //  emitter.start(false, 3000, 5);
         mySprite.animations.play('up', 30, false);
+
+        console.log(mySprite.y);
     }
-    else
-    {
+    else {
         mySprite.animations.play('stop', 30, false);
     }
 
-    if (cursors.left.isDown)
-    {
+    if (cursors.left.isDown) {
         if (cursors.up.isDown) {
             mySprite.x = mySprite.x - 10;
-        }else{
+        } else {
             mySprite.x = mySprite.x - 5;
         }
         mySprite.animations.play('left', 15, false);
 
+       // mySpritePixel.x = x;
+        mySpritePixel.angle = 180;
+
     }
-    else if (cursors.right.isDown)
-    {
+    else if (cursors.right.isDown) {
         if (cursors.up.isDown) {
             mySprite.x = mySprite.x + 10;
-        }else{
+        } else {
             mySprite.x = mySprite.x + 5;
         }
         mySprite.animations.play('right', 15, false);
-    } else
-    {
+        mySpritePixel.x = x;
+        mySpritePixel.angle = 0;
+
+
+    } else {
         mySprite.animations.play('stop', 15, false);
     }
 
-    if (game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR))
-    {
+    if (game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)) {
         weapon.fire();
     }
+
+    mySpritePixel.y =   mySprite.y;
+    mySpritePixel.x =   mySprite.x;
+
+
 }
 
 function particleBurst() {
@@ -179,9 +209,9 @@ function particleBurst() {
     emitter.emitY = mySprite.y;
 
     // Phaser.Particles.Arcade.Emitter.setScale(minX, maxX, minY, maxY, rate, ease, yoyo) : void;
-    emitter.setScale(0.01, .5, 0.01, .1, 600);
+    emitter.setScale(0.1,0, 0.1,0, 3000);
 
-    emitter.start(true, 500, null, 5);
+    emitter.start(true, 100, null, 5);
 
     //  And 2 seconds later we'll destroy the emitter
     game.time.events.add(500, destroyEmitter);
